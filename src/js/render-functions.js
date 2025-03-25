@@ -5,7 +5,6 @@ let lightbox;
 
 function renderGallery(images) {
   const galleryContainer = document.querySelector('.gallery');
-  galleryContainer.innerHTML = '';
 
   images.forEach(image => {
     const galleryItem = document.createElement('li');
