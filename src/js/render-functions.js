@@ -36,4 +36,10 @@ function renderGallery(images) {
   }
 }
 
+function clearGallery() {
+  const galleryContainer = document.querySelector('.gallery');
+  galleryContainer.innerHTML = '';
+}
+
 export { renderGallery };
+export { clearGallery };

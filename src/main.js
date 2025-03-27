@@ -5,6 +5,7 @@ import {
   getCurrentPage,
 } from './js/pixabay-api';
 import { renderGallery } from './js/render-functions';
+import { clearGallery } from './js/render-functions';
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 
@@ -15,8 +16,7 @@ const loadMoreButton = document.querySelector('.load-more-button');
 const messageEnd = document.querySelector('.message-end');
 
 let currentSearchQuery = '';
-let totalLoadedImages = 0; // Счетчик для общего количества загруженных картинок
-const IMAGE_LIMIT = 40; // Ограничение на 40 картинок
+let totalLoadedImages = 0;
 
 function showLoader() {
   loader.style.display = 'block';
@@ -46,13 +46,11 @@ function scrollToNextImages() {
   const galleryItem = gallery.querySelector('.gallery-item');
 
   if (galleryItem) {
-    // Отримуємо висоту першої картки галереї
     const cardHeight = galleryItem.getBoundingClientRect().height;
 
-    // Прокручуємо сторінку на дві висоти картки
     window.scrollBy({
-      top: cardHeight * 2, // Прокручуємо на дві висоти картки
-      behavior: 'smooth', // Плавна прокрутка
+      top: cardHeight * 2,
+      behavior: 'smooth',
     });
   }
 }
@@ -72,11 +70,12 @@ async function handleSearchSubmit(e) {
 
   resetPagination(query);
   currentSearchQuery = query;
-  totalLoadedImages = 0; // Сбросить счетчик при новом запросе
+  totalLoadedImages = 0;
 
   showLoader();
-  gallery.innerHTML = '';
+  clearGallery();
   hideMessageEnd();
+  hideLoadMoreButton();
 
   try {
     const { hits, totalHits } = await fetchImages(query, getCurrentPage());
@@ -93,21 +92,13 @@ async function handleSearchSubmit(e) {
       renderGallery(hits);
       totalLoadedImages += hits.length;
 
-      if (totalLoadedImages >= IMAGE_LIMIT) {
-        iziToast.success({
-          title: '🎉 Success',
-          message: 'You have reached the image limit!',
-          position: 'topRight',
-        });
-        hideLoadMoreButton();
-      } else if (hits.length < totalHits) {
-        showLoadMoreButton();
-      } else {
+      if (totalLoadedImages >= totalHits) {
         hideLoadMoreButton();
         showMessageEnd();
+      } else if (hits.length < totalHits) {
+        showLoadMoreButton();
       }
 
-      // Плавно прокручуємо сторінку після завантаження зображень
       scrollToNextImages();
     }
   } catch (error) {
@@ -135,21 +126,13 @@ async function handleLoadMoreClick() {
       renderGallery(hits);
       totalLoadedImages += hits.length;
 
-      if (totalLoadedImages >= IMAGE_LIMIT) {
-        iziToast.success({
-          title: '🎉 Success',
-          message: 'You have reached the image limit!',
-          position: 'topRight',
-        });
-        hideLoadMoreButton();
-      } else if (hits.length < totalHits) {
-        showLoadMoreButton();
-      } else {
+      if (totalLoadedImages >= totalHits) {
         hideLoadMoreButton();
         showMessageEnd();
+      } else {
+        showLoadMoreButton();
       }
 
-      // Плавно прокручуємо сторінку після завантаження зображень
       scrollToNextImages();
     } else {
       iziToast.error({
@@ -158,7 +141,7 @@ async function handleLoadMoreClick() {
         position: 'topRight',
       });
       hideLoadMoreButton();
-      showMessageEnd(); // Показываем сообщение о конце результатов
+      showMessageEnd();
     }
   } catch (error) {
     hideLoader();
